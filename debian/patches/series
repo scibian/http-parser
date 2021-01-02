@@ -1,0 +1,9 @@
+# cherry-picked commits. Keep in upstream's chronological order
+cherry-pick.v2.9.4-4-g805a0d1.fix-test-numbers.patch
+cherry-pick.v2.9.4-6-gd9275da.fix-wsign-compare-warning.patch
+cherry-pick.v2.9.4-7-g4b99e42.test-content-length-header-parsing.patch
+cherry-pick.v2.9.4-8-ge13b274.allow-content-length-and-transfer-encoding-chunked.patch
+cherry-pick.v2.9.4-9-g4f15b7d.fix-sizeof-http-parser-assert.patch
+
+# Debian-specific
+debian.improve-installation.patch

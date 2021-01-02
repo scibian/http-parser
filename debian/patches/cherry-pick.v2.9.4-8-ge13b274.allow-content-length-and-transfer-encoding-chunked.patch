@@ -1,0 +1,201 @@
+Subject: Allow Content-Length and Transfer-Encoding: chunked
+Origin: v2.9.4-8-ge13b274 <https://github.com/joyent/http-parser/commit/e13b274>
+Upstream-Author: Oleg Guba <oleg@dropbox.com>
+Date: Fri Jul 10 11:49:58 2020 +0200
+
+    Fixes: https://github.com/nodejs/http-parser/issues/517
+    PR-URL: https://github.com/nodejs/http-parser/pull/518
+    Reviewed-By: Ben Noordhuis <info@bnoordhuis.nl>
+    Reviewed-By: Pierce Lopez <pierce.lopez@gmail.com>
+
+--- a/http_parser.c
++++ b/http_parser.c
+@@ -653,6 +653,8 @@
+   const char *status_mark = 0;
+   enum state p_state = (enum state) parser->state;
+   const unsigned int lenient = parser->lenient_http_headers;
++  const unsigned int allow_chunked_length = parser->allow_chunked_length;
++
+   uint32_t nread = parser->nread;
+ 
+   /* We're in an error state. Don't bother doing anything. */
+@@ -731,7 +733,7 @@
+         if (ch == CR || ch == LF)
+           break;
+         parser->flags = 0;
+-        parser->extra_flags = 0;
++        parser->uses_transfer_encoding = 0;
+         parser->content_length = ULLONG_MAX;
+ 
+         if (ch == 'H') {
+@@ -769,7 +771,7 @@
+         if (ch == CR || ch == LF)
+           break;
+         parser->flags = 0;
+-        parser->extra_flags = 0;
++        parser->uses_transfer_encoding = 0;
+         parser->content_length = ULLONG_MAX;
+ 
+         if (ch == 'H') {
+@@ -927,7 +929,7 @@
+         if (ch == CR || ch == LF)
+           break;
+         parser->flags = 0;
+-        parser->extra_flags = 0;
++        parser->uses_transfer_encoding = 0;
+         parser->content_length = ULLONG_MAX;
+ 
+         if (UNLIKELY(!IS_ALPHA(ch))) {
+@@ -1341,7 +1343,7 @@
+                 parser->header_state = h_general;
+               } else if (parser->index == sizeof(TRANSFER_ENCODING)-2) {
+                 parser->header_state = h_transfer_encoding;
+-                parser->extra_flags |= F_TRANSFER_ENCODING >> 8;
++                parser->uses_transfer_encoding = 1;
+               }
+               break;
+ 
+@@ -1801,14 +1803,19 @@
+           REEXECUTE();
+         }
+ 
+-        /* Cannot us transfer-encoding and a content-length header together
++        /* Cannot use transfer-encoding and a content-length header together
+            per the HTTP specification. (RFC 7230 Section 3.3.3) */
+-        if ((parser->extra_flags & (F_TRANSFER_ENCODING >> 8)) &&
++        if ((parser->uses_transfer_encoding == 1) &&
+             (parser->flags & F_CONTENTLENGTH)) {
+           /* Allow it for lenient parsing as long as `Transfer-Encoding` is
+-           * not `chunked`
++           * not `chunked` or allow_length_with_encoding is set
+            */
+-          if (!lenient || (parser->flags & F_CHUNKED)) {
++          if (parser->flags & F_CHUNKED) {
++            if (!allow_chunked_length) {
++              SET_ERRNO(HPE_UNEXPECTED_CONTENT_LENGTH);
++              goto error;
++            }
++          } else if (!lenient) {
+             SET_ERRNO(HPE_UNEXPECTED_CONTENT_LENGTH);
+             goto error;
+           }
+@@ -1889,7 +1896,7 @@
+           /* chunked encoding - ignore Content-Length header,
+            * prepare for a chunk */
+           UPDATE_STATE(s_chunk_size_start);
+-        } else if (parser->extra_flags & (F_TRANSFER_ENCODING >> 8)) {
++        } else if (parser->uses_transfer_encoding == 1) {
+           if (parser->type == HTTP_REQUEST && !lenient) {
+             /* RFC 7230 3.3.3 */
+ 
+@@ -2165,7 +2172,7 @@
+   }
+ 
+   /* RFC 7230 3.3.3, see `s_headers_almost_done` */
+-  if ((parser->extra_flags & (F_TRANSFER_ENCODING >> 8)) &&
++  if ((parser->uses_transfer_encoding == 1) &&
+       (parser->flags & F_CHUNKED) == 0) {
+     return 1;
+   }
+--- a/http_parser.h
++++ b/http_parser.h
+@@ -225,7 +225,6 @@
+   , F_UPGRADE               = 1 << 5
+   , F_SKIPBODY              = 1 << 6
+   , F_CONTENTLENGTH         = 1 << 7
+-  , F_TRANSFER_ENCODING     = 1 << 8  /* Never set in http_parser.flags */
+   };
+ 
+ 
+@@ -300,7 +299,10 @@
+   unsigned int state : 7;        /* enum state from http_parser.c */
+   unsigned int header_state : 7; /* enum header_state from http_parser.c */
+   unsigned int index : 5;        /* index into current matcher */
+-  unsigned int extra_flags : 2;
++  unsigned int uses_transfer_encoding : 1; /* Transfer-Encoding header is present */
++  unsigned int allow_chunked_length : 1; /* Allow headers with both
++                                          * `Content-Length` and
++                                          * `Transfer-Encoding: chunked` set */
+   unsigned int lenient_http_headers : 1;
+ 
+   uint32_t nread;          /* # bytes read in various scenarios */
+--- a/test.c
++++ b/test.c
+@@ -82,6 +82,7 @@
+   int status_cb_called;
+   int message_complete_on_eof;
+   int body_is_final;
++  int allow_chunked_length;
+ };
+ 
+ static int currently_parsing_eof;
+@@ -1293,6 +1294,37 @@
+   ,.num_chunks_complete= 2
+   ,.chunk_lengths= { 0x1e }
+   }
++
++#define CHUNKED_CONTENT_LENGTH 46
++, {.name= "chunked with content-length set, allow_chunked_length flag is set"
++  ,.type= HTTP_REQUEST
++  ,.raw= "POST /chunked_w_content_length HTTP/1.1\r\n"
++         "Content-Length: 10\r\n"
++         "Transfer-Encoding: chunked\r\n"
++         "\r\n"
++         "5; ilovew3;whattheluck=aretheseparametersfor\r\nhello\r\n"
++         "6; blahblah; blah\r\n world\r\n"
++         "0\r\n"
++         "\r\n"
++  ,.allow_chunked_length = 1
++  ,.should_keep_alive= TRUE
++  ,.message_complete_on_eof= FALSE
++  ,.http_major= 1
++  ,.http_minor= 1
++  ,.method= HTTP_POST
++  ,.query_string= ""
++  ,.fragment= ""
++  ,.request_path= "/chunked_w_content_length"
++  ,.request_url= "/chunked_w_content_length"
++  ,.content_length= 10
++  ,.num_headers= 2
++  ,.headers={ { "Content-Length", "10"}
++            , { "Transfer-Encoding", "chunked" }
++  }
++  ,.body= "hello world"
++  ,.num_chunks_complete= 3
++  ,.chunk_lengths= { 5, 6 }
++  }
+ };
+ 
+ /* * R E S P O N S E S * */
+@@ -3582,6 +3614,9 @@
+   size_t msg1len;
+   for (msg1len = 0; msg1len < raw_len; msg1len++) {
+     parser_init(message->type);
++    if (message->allow_chunked_length) {
++      parser.allow_chunked_length = 1;
++    }
+ 
+     size_t read;
+     const char *msg1 = message->raw;
+@@ -4023,6 +4058,11 @@
+   strcat(total, r3->raw);
+ 
+   parser_init(r1->type);
++  if (r1->allow_chunked_length ||
++      r2->allow_chunked_length ||
++      r3->allow_chunked_length) {
++    parser.allow_chunked_length = 1;
++  }
+ 
+   size_t read;
+ 
+@@ -4225,6 +4265,9 @@
+   size_t nread;
+ 
+   parser_init(msg->type);
++  if (msg->allow_chunked_length) {
++    parser.allow_chunked_length = 1;
++  }
+ 
+   do {
+     nread = parse_pause(buf, buflen);

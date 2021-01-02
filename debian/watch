@@ -1,0 +1,4 @@
+
+version=4
+https://github.com/joyent/@PACKAGE@/tags \
+    .*/v?(\d.*)@ARCHIVE_EXT@

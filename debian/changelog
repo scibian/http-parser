@@ -1,0 +1,129 @@
+http-parser (2.9.4-4) unstable; urgency=medium
+
+  * Packaging cleanup
+  * Fix autopkgtest: Add build-essential to dependencies
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sat, 02 Jan 2021 17:07:49 +0100
+
+http-parser (2.9.4-3) unstable; urgency=medium
+
+  * Fix build for x32
+  * Add a simple autopkgtest
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Thu, 31 Dec 2020 09:44:39 +0100
+
+http-parser (2.9.4-2) unstable; urgency=high
+
+  * Upload to unstable. Closes: #977467 [CVE-2019-15605]
+  * Make build on i386 pass
+  * http-parser was abandoned upstream, cherry-pick commits since last
+    release that seem sensible to include.
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 20 Dec 2020 10:26:44 +0100
+
+http-parser (2.9.4-1) experimental; urgency=medium
+
+  * Upload to experimental
+  * New upstream version 2.9.4
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sat, 19 Dec 2020 10:29:54 +0100
+
+http-parser (2.9.3-1) experimental; urgency=medium
+
+  * Upload to experimental
+  * New upstream version 2.9.3
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Mon, 24 Feb 2020 07:15:44 +0100
+
+http-parser (2.9.2-2) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 04 Aug 2019 23:00:55 +0200
+
+http-parser (2.9.2-1) experimental; urgency=medium
+
+  * New upstream version 2.9.2, upload to experimental
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 21 Jul 2019 16:11:00 +0200
+
+http-parser (2.8.1-1) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Thu, 12 Apr 2018 22:15:13 +0200
+
+http-parser (2.8.1-1~exp1) experimental; urgency=medium
+
+  * Upload to experimental
+  * New upstream version 2.8.1, soname 2.8
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Wed, 04 Apr 2018 23:22:46 +0200
+
+http-parser (2.7.1-2) unstable; urgency=medium
+
+  * Eventually upload to unstable. Closes: #795492
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 19 Nov 2017 16:06:25 +0100
+
+http-parser (2.7.1-2~exp1) experimental; urgency=medium
+
+  * Upload to experimental
+  * Packaging cleanup, create a -dbgsym package
+  * Cherry-pick upstream commit v2.7.1-1-g335850f: Provide
+    HTTP_STATUS_MAP(XX) and enum http_status
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Tue, 14 Nov 2017 18:52:13 +0100
+
+http-parser (2.7.1-1~exp1) experimental; urgency=medium
+
+  * New maintainer, thanks to Pirate Praveen for maintaining this package
+  * New upstream version 2.7.1
+  * Upload to experimental as first step for the transition
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 12 Nov 2017 23:45:57 +0100
+
+http-parser (2.1-2.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix FTBFS with GCC-7, thanks to Hilko Bengen (Closes: #853446)
+
+  [ Helmut Grohne ]
+  * Fix FTCBFS: Let dh_auto_build pass cross flags. (Closes #842848)
+
+ -- Manuel A. Fernandez Montecelo <mafm@debian.org>  Sat, 04 Nov 2017 21:01:55 +0100
+
+http-parser (2.1-2) unstable; urgency=low
+
+  * Team upload.
+
+  [ Per Andersson ]
+  * Update copyright with years
+  * Fix Vcs-* URLs
+
+  [ Cédric Boutillier ]
+  * debian/rules:
+    - export build flags
+    - override dh_auto_install instead of defining build: target
+      (Closes: #719036)
+  * debian/patches:
+    - add fix-soname.patch from upstream to define a proper SONAME
+    - update use-ldflags.patch to add LDFLAGS to LDFLAGS_LIB
+  * Fix multiarch installation path (Closes: #719780)
+    - ld can now find it with -lhttp_parser (Closes: #724204)
+  * Install symlinks for the -dev package
+
+  [ Praveen Arimbrathodiyil ]
+  * add symbols file
+  * unapply patches after build
+  * override dh_makeshlibs
+  * add a -dbg package
+  * add dpkg-dev (>= 1.16.1~) to build deps
+
+ -- Cédric Boutillier <boutil@debian.org>  Tue, 24 Sep 2013 00:29:11 +0200
+
+http-parser (2.1-1) unstable; urgency=low
+
+  * Initial release (Closes: #712052)
+
+ -- Praveen Arimbrathodiyil <praveen@debian.org>  Thu, 13 Jun 2013 20:37:49 +0530

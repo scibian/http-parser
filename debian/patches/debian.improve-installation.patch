@@ -1,0 +1,31 @@
+Description: Improve installation
+Author: Christoph Biedl <debian.axhn@manchmal.in-ulm.de>
+Forwarded: not-needed
+Last-Update: 2020-02-24
+
+    * Make LIBDIR overridable from debian/rules
+    * Install the .a file
+
+--- a/Makefile
++++ b/Makefile
+@@ -62,7 +62,7 @@
+ 
+ INSTALL ?= install
+ PREFIX ?= /usr/local
+-LIBDIR = $(PREFIX)/lib
++LIBDIR ?= $(PREFIX)/lib
+ INCLUDEDIR = $(PREFIX)/include
+ 
+ ifeq (darwin,$(PLATFORM))
+@@ -130,9 +130,10 @@
+ tags: http_parser.c http_parser.h test.c
+ 	ctags $^
+ 
+-install: library
++install:
+ 	$(INSTALL) -D  http_parser.h $(DESTDIR)$(INCLUDEDIR)/http_parser.h
+ 	$(INSTALL) -D $(LIBNAME) $(DESTDIR)$(LIBDIR)/$(LIBNAME)
++	$(INSTALL) -D libhttp_parser.a $(DESTDIR)$(LIBDIR)/libhttp_parser.a
+ 	ln -sf $(LIBNAME) $(DESTDIR)$(LIBDIR)/$(SONAME)
+ 	ln -sf $(LIBNAME) $(DESTDIR)$(LIBDIR)/$(SOLIBNAME).$(SOEXT)
+ 

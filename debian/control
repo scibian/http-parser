@@ -1,0 +1,37 @@
+Source: http-parser
+Maintainer: Christoph Biedl <debian.axhn@manchmal.in-ulm.de>
+Homepage: https://github.com/joyent/http-parser
+Standards-Version: 4.5.1
+Vcs-Browser: https://git.in-ulm.de/cbiedl/http-parser
+Vcs-Git: https://git.in-ulm.de/cbiedl/http-parser.git
+Build-Depends: debhelper-compat (= 13),
+Priority: optional
+Rules-Requires-Root: no
+Section: libs
+
+Package: libhttp-parser2.9
+Architecture: any
+Pre-Depends:
+    ${misc:Pre-Depends},
+Depends: ${misc:Depends}, ${shlibs:Depends},
+Multi-Arch: same
+Description: parser for HTTP messages written in C
+ It parses both requests and responses. The parser is designed to be used in
+ performance HTTP applications. It does not make any syscalls nor allocations,
+ it does not buffer data, it can be interrupted at anytime. Depending on your
+ architecture, it only requires about 40 bytes of data per message stream (in
+ a web server that is per connection).
+
+Package: libhttp-parser-dev
+Architecture: any
+Depends: ${misc:Depends},
+    libhttp-parser2.9 (= ${binary:Version}),
+Section: libdevel
+Description: parser for HTTP messages: development libraries and header files
+ It parses both requests and responses. The parser is designed to be used in
+ performance HTTP applications. It does not make any syscalls nor allocations,
+ it does not buffer data, it can be interrupted at anytime. Depending on your
+ architecture, it only requires about 40 bytes of data per message stream (in
+ a web server that is per connection).
+ .
+ This package contains development libraries and header files.

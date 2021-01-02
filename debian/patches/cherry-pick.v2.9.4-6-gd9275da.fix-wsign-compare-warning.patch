@@ -1,0 +1,24 @@
+Subject: Fix -Wsign-compare warning
+Origin: v2.9.4-6-gd9275da <https://github.com/joyent/http-parser/commit/d9275da>
+Upstream-Author: Ben Noordhuis <info@bnoordhuis.nl>
+Date: Fri May 15 13:29:49 2020 +0200
+
+    The operands to `+` are promoted from `uint16_t` to `int` before
+    addition, making the expression `off + len <= buflen` emit a
+    warning because `buflen` is unsigned.
+
+    Fixes: https://github.com/nodejs/http-parser/issues/514
+    PR-URL: https://github.com/nodejs/http-parser/pull/515
+    Reviewed-By: Fedor Indutny <fedor.indutny@gmail.com>
+
+--- a/http_parser.c
++++ b/http_parser.c
+@@ -2517,7 +2517,7 @@
+     end = buf + off + len;
+ 
+     /* NOTE: The characters are already validated and are in the [0-9] range */
+-    assert(off + len <= buflen && "Port number overflow");
++    assert((size_t) (off + len) <= buflen && "Port number overflow");
+     v = 0;
+     for (p = buf + off; p < end; p++) {
+       v *= 10;

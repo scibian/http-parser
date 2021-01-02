@@ -1,0 +1,30 @@
+Subject: Fix sizeof(http_parser) assert
+Origin: v2.9.4-9-g4f15b7d <https://github.com/joyent/http-parser/commit/4f15b7d>
+Upstream-Author: Ben Noordhuis <info@bnoordhuis.nl>
+Date: Fri Jul 10 11:55:11 2020 +0200
+Bug: https://github.com/nodejs/http-parser/issues/526
+Comment: Changed again to make build pass on i386, see bug URL in previous line
+
+    The result should be 32 on both 32 bits and 64 bits x86 because of
+    struct padding.
+
+    Fixes: https://github.com/nodejs/http-parser/issues/507
+    PR-URL: https://github.com/nodejs/http-parser/pull/510
+    Reviewed-By: Fedor Indutny <fedor.indutny@gmail.com>
+
+--- a/test.c
++++ b/test.c
+@@ -4343,7 +4343,13 @@
+   printf("http_parser v%u.%u.%u (0x%06lx)\n", major, minor, patch, version);
+ 
+   printf("sizeof(http_parser) = %u\n", (unsigned int)sizeof(http_parser));
++
++#if (defined(__i386__) || defined(__x86_64__)) && !defined (__ILP32__)
++  /* Should be 32 on both 32 bits and 64 bits x86 because of struct padding,
++   * see https://github.com/nodejs/http-parser/issues/507.
++   */
+   assert(sizeof(http_parser) == 4 + 4 + 8 + 2 + 2 + 4 + sizeof(void *));
++#endif
+ 
+   //// API
+   test_preserve_data();

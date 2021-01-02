@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+CPPFLAGS = $(shell dpkg-buildflags --get CPPFLAGS) -DHTTP_PARSER_STRICT=0
+CFLAGS = $(shell dpkg-buildflags --get CFLAGS)
+LDFLAGS = $(shell dpkg-buildflags --get LDFLAGS)
+
+all: test_auto
+	./test_auto
+
+test_auto: test_auto.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -lhttp_parser -o $@
+
+test_auto.o: test_auto.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+test_auto.c: test.c
+	sed -e 's/#include "http_parser.h"/#include <http_parser.h>/' <$< >$@
