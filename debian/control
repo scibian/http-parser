@@ -1,10 +1,11 @@
 Source: http-parser
-Maintainer: Christoph Biedl <debian.axhn@manchmal.in-ulm.de>
+Maintainer: Scibian Project <packaging@scibian.org>
+Uploaders: Kwame Amedodji <kamedodji@yahoo.fr>,
 Homepage: https://github.com/joyent/http-parser
 Standards-Version: 4.5.1
 Vcs-Browser: https://git.in-ulm.de/cbiedl/http-parser
 Vcs-Git: https://git.in-ulm.de/cbiedl/http-parser.git
-Build-Depends: debhelper-compat (= 13),
+Build-Depends: debhelper (>= 10),
 Priority: optional
 Rules-Requires-Root: no
 Section: libs
