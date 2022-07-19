@@ -1,3 +1,9 @@
+http-parser (2.9.4-4sci10u1) scibian10; urgency=medium
+
+  * Port to scibian
+
+ -- KWAME AMEDODJI <kwame-externe.amedodji@edf.fr>  Wed, 29 Jun 2022 12:00:38 +0200
+
 http-parser (2.9.4-4) unstable; urgency=medium
 
   * Packaging cleanup
